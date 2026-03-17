@@ -2,6 +2,10 @@ import Link from "next/link";
 import { FaPlayCircle } from "react-icons/fa";
 
 const NavBar = () => {
+	const links = [
+		{ label: "Dashboard", href: "/dashboard" },
+		{ label: "Videos", href: "/videos" },
+	];
 	return (
 		<nav className="flex space-x-6 border-b mb-5 px-5 h-14 items-center">
 			{/* logo  */}
@@ -15,17 +19,13 @@ const NavBar = () => {
 			</Link>
 			{/* links */}
 			<ul className="flex space-x-6">
-				<li>
-					<Link href="/dashboard" className="text-zinc-600 hover:text-black">
-						Dashboard
-					</Link>
-				</li>
-
-				<li>
-					<Link href="/videos" className="text-zinc-600 hover:text-black">
-						Videos
-					</Link>
-				</li>
+				{links.map((link) => (
+					<li key={link.label}>
+						<Link href={link.href} className="text-zinc-600 hover:text-black">
+							{link.label}
+						</Link>
+					</li>
+				))}
 			</ul>
 		</nav>
 	);
