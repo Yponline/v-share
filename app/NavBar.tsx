@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FaPlayCircle } from "react-icons/fa";
 
 const NavBar = () => {
@@ -6,6 +8,9 @@ const NavBar = () => {
 		{ label: "Dashboard", href: "/dashboard" },
 		{ label: "Videos", href: "/videos" },
 	];
+
+	const pathname = usePathname();
+
 	return (
 		<nav className="flex space-x-6 border-b mb-5 px-5 h-14 items-center">
 			{/* logo  */}
@@ -21,7 +26,9 @@ const NavBar = () => {
 			<ul className="flex space-x-6">
 				{links.map((link) => (
 					<li key={link.label}>
-						<Link href={link.href} className="text-zinc-600 hover:text-black">
+						<Link
+							href={link.href}
+							className={`text-zinc-600 hover:text-black ${pathname === link.href ? "border-b border-black text-black" : "border-none"}`}>
 							{link.label}
 						</Link>
 					</li>
