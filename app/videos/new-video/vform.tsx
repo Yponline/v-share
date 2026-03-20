@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,161 +32,223 @@ import {
 } from "@/components/ui/input-group";
 
 import { CldUploadWidget, CldImage } from "next-cloudinary";
-
 import { useState } from "react";
-import { formSchemaF } from "../../formSchema";
 
-interface CloudnaryResults {
-	public_id: string;
-}
+// Use the schema you want to send to the API
+export const formSchemaB = z.object({
+	title: z
+		.string()
+		.min(5, "Title must be at least 5 characters.")
+		.max(32, "Title must be at most 32 characters."),
+	description: z
+		.string()
+		.min(10, "Description must be at least 10 characters.")
+		.max(100, "Description must be at most 100 characters."),
+	publicId: z.string().min(1, "Please upload a video first"),
+});
 
-// react function
+type FormValues = z.infer<typeof formSchemaB>;
+
 export function VideoForm() {
-	const [public_id, setPublicId] = useState("results");
+	const [previewPublicId, setPreviewPublicId] = useState<string | null>(null);
 
-	const form = useForm<z.infer<typeof formSchemaF>>({
-		resolver: zodResolver(formSchemaF),
+	const form = useForm<FormValues>({
+		resolver: zodResolver(formSchemaB),
 		defaultValues: {
 			title: "",
 			description: "",
+			publicId: "",
 		},
+		mode: "onChange", // optional: better real-time validation
 	});
 
-	// submitting data function
-	function onSubmit(data: z.infer<typeof formSchemaF>) {
-		// Toast Info
-		toast("You submitted the following values:", {
-			description: (
-				<pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-					<code>{JSON.stringify(data, null, 2)}</code>
-				</pre>
-			),
-			position: "bottom-right",
-			classNames: {
-				content: "flex flex-col gap-2",
-			},
-			style: {
-				"--border-radius": "calc(var(--radius)  + 4px)",
-			} as React.CSSProperties,
-		});
+	const { handleSubmit, setValue, formState, reset } = form;
 
-		console.log(data, public_id);
+	async function onSubmit(data: FormValues) {
+		try {
+			toast.info("Uploading video...", { id: "video-upload" });
+
+			const response = await axios.post("/api/videos", data, {
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+
+			toast.dismiss("video-upload");
+			toast.success("Video uploaded successfully!");
+
+			console.log("Server response:", response.data);
+
+			// Optional: reset form + preview after success
+			reset();
+			setPreviewPublicId(null);
+		} catch (err: any) {
+			toast.dismiss("video-upload");
+
+			const message =
+				err.response?.data?.message ||
+				err.message ||
+				"Failed to upload video. Please try again.";
+
+			toast.error(message);
+			console.error("Upload error:", err);
+		}
 	}
 
 	return (
-		<div className="flex space-x-6">
-			<Card className="w-full sm:max-w-md border-none shadow-none md:shadow ">
+		<div className="flex flex-col sm:flex-row gap-8">
+			<Card className="w-full sm:max-w-md border-none shadow-none md:shadow">
 				<CardHeader>
 					<CardTitle>Video Upload</CardTitle>
-					<CardDescription>Share Ur Videos Free</CardDescription>
+					<CardDescription>Share your videos for free</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
+					<form id="video-upload-form" onSubmit={handleSubmit(onSubmit)}>
 						<FieldGroup>
-							{/* tittle */}
+							{/* Title */}
 							<Controller
 								name="title"
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field data-invalid={fieldState.invalid}>
-										<FieldLabel htmlFor="form-rhf-demo-title">Title</FieldLabel>
+										<FieldLabel htmlFor="title">Title</FieldLabel>
 										<Input
 											{...field}
-											id="form-rhf-demo-title"
-											aria-invalid={fieldState.invalid}
-											placeholder="Enter Video Title"
+											id="title"
+											placeholder="Enter video title"
 											autoComplete="off"
+											aria-invalid={fieldState.invalid}
 										/>
-										{fieldState.invalid && (
+										{fieldState.error && (
 											<FieldError errors={[fieldState.error]} />
 										)}
 									</Field>
 								)}
 							/>
 
-							{/* description */}
+							{/* Description */}
 							<Controller
 								name="description"
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field data-invalid={fieldState.invalid}>
-										<FieldLabel htmlFor="form-rhf-demo-description">
-											Description
-										</FieldLabel>
+										<FieldLabel htmlFor="description">Description</FieldLabel>
 										<InputGroup>
 											<InputGroupTextarea
 												{...field}
-												id="form-rhf-demo-description"
-												placeholder="Describe ur video."
+												id="description"
+												placeholder="Describe your video..."
 												rows={6}
 												className="min-h-24 resize-none"
 												aria-invalid={fieldState.invalid}
 											/>
 											<InputGroupAddon align="block-end">
 												<InputGroupText className="tabular-nums">
-													{field.value.length}/100 characters
+													{field.value?.length || 0}/100
 												</InputGroupText>
 											</InputGroupAddon>
 										</InputGroup>
 										<FieldDescription>
-											Include steps to reproduce, expected behavior, and what
-											actually happened.
+											Max 100 characters. Be clear and engaging.
 										</FieldDescription>
-										{fieldState.invalid && (
+										{fieldState.error && (
 											<FieldError errors={[fieldState.error]} />
 										)}
 									</Field>
 								)}
 							/>
 
-							{/* UploadBTN  */}
+							{/* Hidden field for publicId – controlled via setValue */}
+							<Controller
+								name="publicId"
+								control={form.control}
+								render={({ fieldState }) => (
+									<>
+										{fieldState.error && (
+											<div className="text-destructive text-sm mt-1">
+												{fieldState.error.message}
+											</div>
+										)}
+									</>
+								)}
+							/>
 						</FieldGroup>
 					</form>
 				</CardContent>
+
 				<CardFooter>
-					<Field orientation="horizontal">
+					<div className="flex gap-3 w-full sm:w-auto">
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => form.reset()}>
+							onClick={() => {
+								reset();
+								setPreviewPublicId(null);
+							}}>
 							Reset
 						</Button>
-						<Button type="submit" form="form-rhf-demo">
-							Submit
+						<Button
+							type="submit"
+							form="video-upload-form"
+							disabled={formState.isSubmitting}>
+							{formState.isSubmitting ? "Uploading..." : "Upload Video"}
 						</Button>
-					</Field>
+					</div>
 				</CardFooter>
 			</Card>
-			<div>
+
+			{/* Upload & Preview Area */}
+			<div className="flex flex-col items-start gap-4">
 				<CldUploadWidget
-					uploadPreset="hotkmv5r"
+					uploadPreset="hotkmv5r" // ← make sure this preset allows video!
+					// You can also pass resource_type: "video" in signature / preset config
 					onSuccess={(result, { widget }) => {
-						console.log("Upload SUCCESS! Full result:", result);
-						console.log("Useful info:", result?.info); // ← this has public_id, secure_url, etc.
-						// Example: result.info.secure_url → ready to save/use
-						if (result.event !== "success") {
+						if (result.event !== "success") return;
+
+						const info = result.info as {
+							public_id: string;
+							resource_type: string;
+						};
+
+						console.log("Uploaded:", info);
+
+						if (info.resource_type !== "video") {
+							toast.warning("Please upload a video file");
 							return;
 						}
 
-						const info = result.info as CloudnaryResults;
+						// Save to form + preview
+						setValue("publicId", info.public_id, { shouldValidate: true });
+						setPreviewPublicId(info.public_id);
 
-						setPublicId(info.public_id);
-						widget.close(); // Optional: auto-close widget after success
-					}}>
-					{({ open }) => {
-						return <button onClick={() => open()}>Upload an Image</button>;
+						widget.close();
 					}}
+					onQueuesEnd={(result, { widget }) => {
+						// Optional: close if user cancels / queue ends
+					}}>
+					{({ open }) => (
+						<Button type="button" onClick={() => open()}>
+							Select Video
+						</Button>
+					)}
 				</CldUploadWidget>
-				{/* Preview display  */}
-				{public_id && (
-					<div>
+
+				{previewPublicId && (
+					<div className="border rounded overflow-hidden bg-black/40">
 						<CldImage
-							width="192"
-							height="192"
-							src={public_id}
-							deliveryType="upload"
-							alt="Description of my image"
+							src={previewPublicId}
+							width={320}
+							height={180}
+							alt="Video thumbnail preview"
+							assetType="video"
+							crop="thumb"
+							// or choose exact time:
+							// time="5"           // 5 seconds in
+							// or range: time="0:10" (first 10s → picks best frame)
 						/>
+						<p className="text-xs text-center text-muted-foreground p-2">
+							Video uploaded ready to submit
+						</p>
 					</div>
 				)}
 			</div>
