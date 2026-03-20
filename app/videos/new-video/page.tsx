@@ -1,10 +1,11 @@
+
 import { VideoForm } from "./vform"
 
 
 const page = () => {
-
+  
   return (
-    <div>
+    <div className="px-5">
       <VideoForm />
     </div>
   )
