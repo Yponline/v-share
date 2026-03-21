@@ -20,7 +20,7 @@ type VideoPlayerProps = {
 	// autoPlay?: boolean;
 	// muted?: boolean;
 	// loop?: boolean;
-	// controls?: boolean;
+	controls?: boolean;
 } & Omit<
 	React.ComponentProps<typeof CldVideoPlayer>,
 	"src" | "width" | "height"

@@ -172,6 +172,63 @@ export function VideoForm() {
 									</>
 								)}
 							/>
+							{/* Upload & Preview Area */}
+							<div className="flex flex-col items-start gap-4">
+								<CldUploadWidget
+									uploadPreset="hotkmv5r" // ← make sure this preset allows video!
+									// You can also pass resource_type: "video" in signature / preset config
+									onSuccess={(result, { widget }) => {
+										if (result.event !== "success") return;
+
+										const info = result.info as {
+											public_id: string;
+											resource_type: string;
+										};
+
+										console.log("Uploaded:", info);
+
+										if (info.resource_type !== "video") {
+											toast.warning("Please upload a video file");
+											return;
+										}
+
+										// Save to form + preview
+										setValue("publicId", info.public_id, {
+											shouldValidate: true,
+										});
+										setPreviewPublicId(info.public_id);
+
+										widget.close();
+									}}
+									onQueuesEnd={(result, { widget }) => {
+										// Optional: close if user cancels / queue ends
+									}}>
+									{({ open }) => (
+										<Button type="button" onClick={() => open()}>
+											Select Video
+										</Button>
+									)}
+								</CldUploadWidget>
+
+								{previewPublicId && (
+									<div className="border rounded overflow-hidden bg-black/40">
+										<CldImage
+											src={previewPublicId}
+											width={320}
+											height={180}
+											alt="Video thumbnail preview"
+											assetType="video"
+											crop="thumb"
+											// or choose exact time:
+											// time="5"           // 5 seconds in
+											// or range: time="0:10" (first 10s → picks best frame)
+										/>
+										<p className="text-xs text-center text-muted-foreground p-2">
+											Video uploaded ready to submit
+										</p>
+									</div>
+								)}
+							</div>
 						</FieldGroup>
 					</form>
 				</CardContent>
@@ -196,62 +253,6 @@ export function VideoForm() {
 					</div>
 				</CardFooter>
 			</Card>
-
-			{/* Upload & Preview Area */}
-			<div className="flex flex-col items-start gap-4">
-				<CldUploadWidget
-					uploadPreset="hotkmv5r" // ← make sure this preset allows video!
-					// You can also pass resource_type: "video" in signature / preset config
-					onSuccess={(result, { widget }) => {
-						if (result.event !== "success") return;
-
-						const info = result.info as {
-							public_id: string;
-							resource_type: string;
-						};
-
-						console.log("Uploaded:", info);
-
-						if (info.resource_type !== "video") {
-							toast.warning("Please upload a video file");
-							return;
-						}
-
-						// Save to form + preview
-						setValue("publicId", info.public_id, { shouldValidate: true });
-						setPreviewPublicId(info.public_id);
-
-						widget.close();
-					}}
-					onQueuesEnd={(result, { widget }) => {
-						// Optional: close if user cancels / queue ends
-					}}>
-					{({ open }) => (
-						<Button type="button" onClick={() => open()}>
-							Select Video
-						</Button>
-					)}
-				</CldUploadWidget>
-
-				{previewPublicId && (
-					<div className="border rounded overflow-hidden bg-black/40">
-						<CldImage
-							src={previewPublicId}
-							width={320}
-							height={180}
-							alt="Video thumbnail preview"
-							assetType="video"
-							crop="thumb"
-							// or choose exact time:
-							// time="5"           // 5 seconds in
-							// or range: time="0:10" (first 10s → picks best frame)
-						/>
-						<p className="text-xs text-center text-muted-foreground p-2">
-							Video uploaded ready to submit
-						</p>
-					</div>
-				)}
-			</div>
 		</div>
 	);
 }
