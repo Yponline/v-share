@@ -92,3 +92,5 @@ export default async function VideosPage() {
 		</div>
 	);
 }
+
+export const dynamic = "force-dynamic";
