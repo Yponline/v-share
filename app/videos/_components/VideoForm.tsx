@@ -34,6 +34,7 @@ import {
 import { CldUploadWidget, CldImage } from "next-cloudinary";
 import { useState } from "react";
 import { Video } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 interface Props {
 	video?: Video;
@@ -55,6 +56,7 @@ export const formSchemaB = z.object({
 type FormValues = z.infer<typeof formSchemaB>;
 
 export function VideoForm({ video }: Props) {
+	const router = useRouter();
 	const [previewPublicId, setPreviewPublicId] = useState<string | null>(null);
 
 	const form = useForm<FormValues>({
@@ -73,23 +75,27 @@ export function VideoForm({ video }: Props) {
 		try {
 			if (video) {
 				axios.patch("/api/videos/" + video.id, data);
+				router.push("/videos");
+				router.refresh();
+			} else {
+				toast.info("Uploading video...", { id: "video-upload" });
+
+				const response = await axios.post("/api/videos", data, {
+					headers: {
+						"Content-Type": "application/json",
+					},
+				});
+
+				toast.dismiss("video-upload");
+				toast.success("Video uploaded successfully!");
+
+				console.log("Server response:", response.data);
+
+				// Optional: reset form + preview after success
+				reset();
+				setPreviewPublicId(null);
+				router.push("/videos");
 			}
-			toast.info("Uploading video...", { id: "video-upload" });
-
-			const response = await axios.post("/api/videos", data, {
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-
-			toast.dismiss("video-upload");
-			toast.success("Video uploaded successfully!");
-
-			console.log("Server response:", response.data);
-
-			// Optional: reset form + preview after success
-			reset();
-			setPreviewPublicId(null);
 		} catch (err: any) {
 			toast.dismiss("video-upload");
 

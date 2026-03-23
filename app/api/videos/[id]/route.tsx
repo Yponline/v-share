@@ -5,9 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: { id: string } },
+	context: { params: Promise<{ id: string }> }, // ← important change here
 ) {
 	try {
+		// Await params before using it
+		const { id } = await context.params;
+
 		const body = await request.json();
 		const result = formSchemaB.safeParse(body);
 
@@ -15,14 +18,28 @@ export async function PATCH(
 			return NextResponse.json(result.error.format(), { status: 400 });
 		}
 
+		// Use the awaited id
+		const video = await prisma.video.findUnique({
+			where: { id },
+			select: { id: true },
+		});
+
+		if (!video) {
+			return NextResponse.json({ error: "Video not found" }, { status: 404 });
+		}
+
+		// Better: use validated data instead of raw body
 		const data = result.data;
 
-		const video = await prisma.video.update({
-			where: { id: params.id },
+		const updated = await prisma.video.update({
+			where: { id },
 			data: {
-				// Only the fields you allow to be updated via PATCH
+				// Use validated & typed data (safer than body.title)
 				title: data.title,
 				description: data.description,
+				// thumbnailUrl: data.thumbnailUrl,
+				// published: data.published,
+				// etc. — only fields your schema allows
 			},
 			select: {
 				id: true,
@@ -32,15 +49,16 @@ export async function PATCH(
 			},
 		});
 
-		return NextResponse.json(video);
+		return NextResponse.json(updated); // ← return actual data is better than string "updated"
 	} catch (error) {
-		// Prisma throws NotFoundError when record doesn't exist
-		if (error instanceof Prisma.PrismaClientKnownRequestError) {
-			if (error.code === "P2025") {
-				return NextResponse.json({ error: "Video not found" }, { status: 404 });
-			}
+		if (
+			error instanceof Prisma.PrismaClientKnownRequestError &&
+			error.code === "P2025"
+		) {
+			return NextResponse.json({ error: "Video not found" }, { status: 404 });
 		}
 
+		console.error(error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
 			{ status: 500 },
