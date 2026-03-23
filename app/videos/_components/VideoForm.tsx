@@ -71,6 +71,9 @@ export function VideoForm({ video }: Props) {
 
 	async function onSubmit(data: FormValues) {
 		try {
+			if (video) {
+				axios.patch("/api/videos/" + video.id, data);
+			}
 			toast.info("Uploading video...", { id: "video-upload" });
 
 			const response = await axios.post("/api/videos", data, {
