@@ -33,6 +33,11 @@ import {
 
 import { CldUploadWidget, CldImage } from "next-cloudinary";
 import { useState } from "react";
+import { Video } from "@prisma/client";
+
+interface Props {
+	video?: Video;
+}
 
 // Use the schema you want to send to the API
 export const formSchemaB = z.object({
@@ -49,15 +54,15 @@ export const formSchemaB = z.object({
 
 type FormValues = z.infer<typeof formSchemaB>;
 
-export function VideoForm() {
+export function VideoForm({ video }: Props) {
 	const [previewPublicId, setPreviewPublicId] = useState<string | null>(null);
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchemaB),
 		defaultValues: {
-			title: "",
-			description: "",
-			publicId: "",
+			title: video?.title ?? "",
+			description: video?.description ?? "",
+			publicId: video?.publicId ?? "", // assuming Video has publicId field
 		},
 		mode: "onChange", // optional: better real-time validation
 	});
@@ -244,12 +249,21 @@ export function VideoForm() {
 							}}>
 							Reset
 						</Button>
-						<Button
-							type="submit"
-							form="video-upload-form"
-							disabled={formState.isSubmitting}>
-							{formState.isSubmitting ? "Uploading..." : "Upload Video"}
-						</Button>
+						{video ? (
+							<Button
+								type="submit"
+								form="video-upload-form"
+								disabled={formState.isSubmitting}>
+								{formState.isSubmitting ? "Updating..." : "Update Video Data"}
+							</Button>
+						) : (
+							<Button
+								type="submit"
+								form="video-upload-form"
+								disabled={formState.isSubmitting}>
+								{formState.isSubmitting ? "Uploading..." : "Upload Video"}
+							</Button>
+						)}
 					</div>
 				</CardFooter>
 			</Card>

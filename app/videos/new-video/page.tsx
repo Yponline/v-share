@@ -1,5 +1,5 @@
 
-import { VideoForm } from "./vform"
+import { VideoForm } from "../_components/VideoForm"
 
 
 const page = () => {

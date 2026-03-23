@@ -46,10 +46,10 @@ export default function VideoPlayer({
 				// muted={true}
 				// loop={true}
 				// autoPlay={true}
-				// controls={true}
+				controls={true}
 				// poster="https://res.cloudinary.com/.../thumbnail.jpg"  // custom poster
 				// colors={{ accent: "#2563eb", base: "#1e293b", text: "#f1f5f9" }} // custom theme
-				// transformation={{ quality: "auto", fetch_format: "auto" }}
+				transformation={{ quality: "auto", fetch_format: "auto" }}
 				{...rest}
 			/>
 		</div>
