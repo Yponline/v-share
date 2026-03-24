@@ -10,6 +10,8 @@ import Title from "./Title";
 import VideoPlayer from "./VideoPlayer";
 import Link from "next/link";
 import { Button } from "@radix-ui/themes";
+import DeleteBtn from "./DeleteBtn";
+import EditBtn from "./EditBtn";
 
 interface Props {
 	params: Promise<{ id: string }>;
@@ -27,7 +29,7 @@ const VideoDetailPage = async ({ params }: Props) => {
 	if (!video) notFound();
 
 	return (
-		<div className="mx-auto md:max-w-6xl w-6/12 ">
+		<div className="mx-auto md:max-w-6xl md:w-7/12 ">
 			{/* Responsive wrapper with fixed aspect ratio */}
 			<div className="aspect-video overflow-hidden rounded-t-2xl border border-gray-200 shadow-2xl dark:border-gray-700">
 				<VideoPlayer
@@ -43,10 +45,9 @@ const VideoDetailPage = async ({ params }: Props) => {
 
 					{video.description && <Description description={video.description} />}
 				</div>
-				<div className="flex items-center justify-center">
-					<Link href={`${id}/edit`}>
-						<Button className="hover:cursor-pointer">Edit</Button>
-					</Link>
+				<div className="flex flex-col gap-4 items-start justify-center ">
+					<EditBtn id={video.id} />
+					<DeleteBtn />
 				</div>
 			</Card>
 		</div>

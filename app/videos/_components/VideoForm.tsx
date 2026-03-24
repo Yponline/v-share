@@ -95,6 +95,7 @@ export function VideoForm({ video }: Props) {
 				reset();
 				setPreviewPublicId(null);
 				router.push("/videos");
+				router.refresh();
 			}
 		} catch (err: any) {
 			toast.dismiss("video-upload");
