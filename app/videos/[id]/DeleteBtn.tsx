@@ -16,7 +16,7 @@ const DeleteBtn = () => {
 						Are u sure u want to delete this video?, this action can not be
 						undone.
 					</AlertDialog.Description>
-					<Flex mt="4" gap='3'}>
+					<Flex mt="4" gap='3'>
 						<AlertDialog.Cancel>
 							<Button variant="soft" color="gray">
 								Cancel
