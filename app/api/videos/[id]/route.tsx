@@ -65,3 +65,22 @@ export async function PATCH(
 		);
 	}
 }
+
+export async function DELETE(
+	request: NextRequest,
+	context: { params: Promise<{ id: string }> }, // ← important change here
+) {
+	const { id } = await context.params;
+	const video = await prisma.video.findUnique({
+		where: { id: id },
+	});
+	if (!video) {
+		return NextResponse.json({ error: "Video not found" }, { status: 404 });
+	}
+
+	prisma.video.delete({
+		where: {
+			id: video.id,
+		},
+	});
+}
