@@ -66,21 +66,43 @@ export async function PATCH(
 	}
 }
 
+// ====================== DELETE ======================
 export async function DELETE(
 	request: NextRequest,
-	context: { params: Promise<{ id: string }> }, // ← important change here
+	context: { params: Promise<{ id: string }> },
 ) {
-	const { id } = await context.params;
-	const video = await prisma.video.findUnique({
-		where: { id: id },
-	});
-	if (!video) {
-		return NextResponse.json({ error: "Video not found" }, { status: 404 });
-	}
+	try {
+		const { id } = await context.params;
 
-	prisma.video.delete({
-		where: {
-			id: video.id,
-		},
-	});
+		const video = await prisma.video.findUnique({
+			where: { id },
+		});
+
+		if (!video) {
+			return NextResponse.json({ error: "Video not found" }, { status: 404 });
+		}
+
+		await prisma.video.delete({
+			where: { id },
+		});
+
+		return NextResponse.json(
+			{ message: "Video deleted successfully" },
+			{ status: 200 },
+		);
+	} catch (error) {
+		console.error("DELETE Error:", error);
+
+		if (
+			error instanceof Prisma.PrismaClientKnownRequestError &&
+			error.code === "P2025"
+		) {
+			return NextResponse.json({ error: "Video not found" }, { status: 404 });
+		}
+
+		return NextResponse.json(
+			{ error: "Internal server error" },
+			{ status: 500 },
+		);
+	}
 }

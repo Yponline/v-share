@@ -47,7 +47,7 @@ const VideoDetailPage = async ({ params }: Props) => {
 				</div>
 				<div className="flex flex-col gap-4 items-start justify-center ">
 					<EditBtn id={video.id} />
-					<DeleteBtn />
+					<DeleteBtn id={video.id} />
 				</div>
 			</Card>
 		</div>
