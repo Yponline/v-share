@@ -1,6 +1,8 @@
+import authOptions from "@/app/auth/AuthOptions";
 import { formSchemaB } from "@/app/formSchema";
 import prisma from "@/prisma/client";
 import { Prisma } from "@prisma/client";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
@@ -8,6 +10,10 @@ export async function PATCH(
 	context: { params: Promise<{ id: string }> }, // ← important change here
 ) {
 	try {
+		const session = await getServerSession(authOptions);
+		if (!session) {
+			return NextResponse.json({}, { status: 401 });
+		}
 		// Await params before using it
 		const { id } = await context.params;
 
@@ -72,6 +78,10 @@ export async function DELETE(
 	context: { params: Promise<{ id: string }> },
 ) {
 	try {
+		const session = await getServerSession(authOptions);
+		if (!session) {
+			return NextResponse.json({}, { status: 401 });
+		}
 		const { id } = await context.params;
 
 		const video = await prisma.video.findUnique({

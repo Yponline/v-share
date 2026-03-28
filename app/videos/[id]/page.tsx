@@ -1,23 +1,21 @@
-// app/videos/[id]/page.tsx
-// (keep as Server Component – no "use client" needed here)
-
 import { Card } from "@/components/ui/card";
 import prisma from "@/prisma/client";
 import "next-cloudinary/dist/cld-video-player.css";
 import { notFound } from "next/navigation";
+import DeleteBtn from "./DeleteBtn";
 import Description from "./Description";
+import EditBtn from "./EditBtn";
 import Title from "./Title";
 import VideoPlayer from "./VideoPlayer";
-import Link from "next/link";
-import { Button } from "@radix-ui/themes";
-import DeleteBtn from "./DeleteBtn";
-import EditBtn from "./EditBtn";
+import { getServerSession } from "next-auth";
+import authOptions from "@/app/auth/AuthOptions";
 
 interface Props {
 	params: Promise<{ id: string }>;
 }
 
 const VideoDetailPage = async ({ params }: Props) => {
+	const session = await getServerSession(authOptions);
 	const { id } = await params;
 
 	if (!id) notFound();
@@ -45,10 +43,12 @@ const VideoDetailPage = async ({ params }: Props) => {
 
 					{video.description && <Description description={video.description} />}
 				</div>
-				<div className="flex flex-col gap-4 items-start justify-center ">
-					<EditBtn id={video.id} />
-					<DeleteBtn id={video.id} />
-				</div>
+				{session && (
+					<div className="flex flex-col gap-4 items-start justify-center ">
+						<EditBtn id={video.id} />
+						<DeleteBtn id={video.id} />
+					</div>
+				)}
 			</Card>
 		</div>
 	);
