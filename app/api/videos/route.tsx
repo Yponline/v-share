@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
 		const newVideo = await prisma.video.create({
 			data: {
 				title: body.title,
+				category: body.category,
 				description: body.description,
 				publicId: body.publicId,
 			},

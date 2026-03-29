@@ -46,6 +46,10 @@ export const formSchemaB = z.object({
 		.string()
 		.min(5, "Title must be at least 5 characters.")
 		.max(32, "Title must be at most 32 characters."),
+	category: z
+		.string()
+		.min(5, "Category must be at least 5 characters.")
+		.max(32, "Category must be at most 32 characters."),
 	description: z
 		.string()
 		.min(10, "Description must be at least 10 characters.")
@@ -63,6 +67,7 @@ export function VideoForm({ video }: Props) {
 		resolver: zodResolver(formSchemaB),
 		defaultValues: {
 			title: video?.title ?? "",
+			category: video?.category ?? "",
 			description: video?.description ?? "",
 			publicId: video?.publicId ?? "", // assuming Video has publicId field
 		},
@@ -131,6 +136,27 @@ export function VideoForm({ video }: Props) {
 											{...field}
 											id="title"
 											placeholder="Enter video title"
+											autoComplete="off"
+											aria-invalid={fieldState.invalid}
+										/>
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
+									</Field>
+								)}
+							/>
+
+							{/* Category */}
+							<Controller
+								name="category"
+								control={form.control}
+								render={({ field, fieldState }) => (
+									<Field data-invalid={fieldState.invalid}>
+										<FieldLabel htmlFor="category">Category</FieldLabel>
+										<Input
+											{...field}
+											id="category"
+											placeholder="Enter Category"
 											autoComplete="off"
 											aria-invalid={fieldState.invalid}
 										/>

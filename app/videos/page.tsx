@@ -1,25 +1,35 @@
 import prisma from "@/prisma/client";
-import Link from "next/link";
 import { Button } from "@radix-ui/themes";
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import CldImageWrapper from "./CldImageWrapper"; // or wherever it is
+import FilterC from "./_components/FilterC";
 
-export default async function VideosPage() {
+export default async function VideosPage({
+	searchParams,
+}: {
+	searchParams: { category: string };
+}) {
+	const querys = await searchParams;
 	const videos = await prisma.video.findMany({
-		orderBy: { createdAt: "desc" }, // ← added back (good practice)
+		where: {
+			category: querys.category,
+		},
 	});
 
 	return (
 		<div className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
 			<div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 				<h1 className="text-3xl font-bold text-gray-900">Videos</h1>
-
-				<Link href="/videos/new-video">
-					<Button variant="solid" size="3" className="gap-2">
-						<Plus size={18} />
-						Add Video
-					</Button>
-				</Link>
+				<div className="flex flex-column ">
+					<FilterC />
+					<Link href="/videos/new-video">
+						<Button variant="solid" size="3" className="gap-2">
+							<Plus size={18} />
+							Add Video
+						</Button>
+					</Link>
+				</div>
 			</div>
 
 			{videos.length === 0 ? (
